@@ -1,6 +1,6 @@
 import pickle
 import os
-
+from utils import *
 
 class InvertedIndex:
     def __init__(self):
@@ -8,11 +8,10 @@ class InvertedIndex:
         self.docmap = {}
     
     def __add_document(self, doc_id, text):
-        text = list(set([x for x in text.split(' ') if len(x)>0]))
-        for token in text:
+        tokens = clean_text(text)
+        for token in tokens:
             if token not in self.index:
                 self.index[token] = [doc_id]
-                
             else:
                 self.index[token].append(doc_id)
             
@@ -27,22 +26,30 @@ class InvertedIndex:
             self.docmap[movie['id']] = movie
             text = f"{movie['title']} {movie['description']}"
             self.__add_document(movie['id'],text)
-            
-        print(len(self.docmap))
-            
-            
+
     def save(self):
-        cache_path = "../cache"
+        cache_path = "./cache"
         if not os.path.isdir(cache_path):
             os.makedirs(cache_path)
             
-        with open("../cache/index.pkl", 'wb') as f:  
+        with open("./cache/index.pkl", 'wb') as f:  
             pickle.dump(self.index,f)
-        with open("../cache/docmap.pkl", 'wb') as f:  
+        with open("./cache/docmap.pkl", 'wb') as f:  
             pickle.dump(self.docmap,f)
             
+    def load(self):
+        def load_pickle(path):
+            file = open(path,'rb')
+            pkl = pickle.load(file)
+            file.close() 
             
-            
-            
+            return pkl     
+        try:
+            self.index = load_pickle("./cache/index.pkl")
+            self.docmap = load_pickle("./cache/docmap.pkl")
+        except:
+            raise ValueError("Pickle Objects do not exist. Use build method to generate before loading.")
+
+    
             
         
