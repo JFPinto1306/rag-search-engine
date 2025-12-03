@@ -6,7 +6,7 @@ import string
 from nltk.stem import PorterStemmer
 from inverted_index import InvertedIndex
 from utils import *
-
+import math
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Keyword Search CLI")
@@ -19,6 +19,9 @@ def main() -> None:
 
     search_parser = subparsers.add_parser("search", help="Search movies using BM25")
     search_parser.add_argument("query", type=str, help="Search query")
+
+    idf_parser = subparsers.add_parser("idf", help="Look for inverted term frequency in document")
+    idf_parser.add_argument("term", type=str, help="Search query")
 
     args = parser.parse_args()
     
@@ -64,7 +67,22 @@ def main() -> None:
             freq = inverted_index.get_tf(doc_id,term)
             print(f"Document {doc_id} contains the term {term} {freq} times")
             
-            
+        case "idf":
+            try:
+                inverted_index.load()
+            except:
+                print("Error loading index")
+                exit(1)     
+
+            term = clean_text(args.term)[0]
+            term_doc_count = len(inverted_index.get_documents(term))
+            doc_count = len(inverted_index.docmap)
+
+            idf = math.log((doc_count + 1) / (term_doc_count + 1))
+            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
+
+
+
         case _:
             parser.print_help()
 
